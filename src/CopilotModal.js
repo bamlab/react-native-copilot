@@ -222,7 +222,9 @@ class CopilotModal extends Component<Props, State> {
             {this.props.currentStepNumber}
           </Text>
         </Animated.View>
-        <Animated.View style={[styles.arrow, this.state.arrow]} />
+        {!this.props.fullWidthToolTips && (
+          <Animated.View style={[styles.arrow, this.state.arrow]} />
+        )}
         <Animated.View
           style={[
             styles.tooltip,
