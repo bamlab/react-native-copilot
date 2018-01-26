@@ -74,30 +74,32 @@ const copilot = ({
       return this.scrollViewMeasure.oy > targetMeasure.y
         ? -targetMeasure.height / 2 - whereToScroll
         : this.scrollViewMeasure.y +
-            ((this.scrollViewMeasure.height) / 2 - targetMeasure.height);
+            (this.scrollViewMeasure.height / 2 - targetMeasure.height);
     };
 
     setCurrentStep = async (step: Step): void => {
-      const targetMeasure = await step.target.measure();
+      this.targetMeasure = await step.target.measure();
       const scrollViewHeight = this.scrollViewMeasure.height;
-      const targetBottomY = targetMeasure.y + targetMeasure.height;
+      const targetBottomY = this.targetMeasure.y + this.targetMeasure.height;
       let newTargetY;
 
       if (
         scrollViewHeight < targetBottomY ||
-        this.scrollViewMeasure.oy > targetMeasure.y
+        this.scrollViewMeasure.oy > this.targetMeasure.y
       ) {
-        newTargetY = await this.startScroll(targetMeasure);
+        newTargetY = await this.startScroll(this.targetMeasure);
       }
       await this.setState({ currentStep: step });
+      this.newTargetY = newTargetY;
+
       this.modal.animateMove({
-        width: targetMeasure.width + OFFSET_WIDTH,
-        height: targetMeasure.height + OFFSET_WIDTH,
-        left: targetMeasure.x - OFFSET_WIDTH / 2,
+        width: this.targetMeasure.width + OFFSET_WIDTH,
+        height: this.targetMeasure.height + OFFSET_WIDTH,
+        left: this.targetMeasure.x - OFFSET_WIDTH / 2,
         top:
-          (!Number.isNaN(parseFloat(newTargetY))
-            ? newTargetY
-            : targetMeasure.y) -
+          (!Number.isNaN(parseFloat(this.newTargetY))
+            ? this.newTargetY
+            : this.targetMeasure.y) -
           OFFSET_WIDTH / 2
       });
     };
@@ -135,8 +137,13 @@ const copilot = ({
       this.setCurrentStep(this.getPrevStep());
     };
 
-    start = async (fromStep?: string, scrollViewMeasure?: Object): void => {
+    start = async (
+      fromStep?: string,
+      scrollViewMeasure?: Object,
+      wrapperContainerMeasure?: Object
+    ): void => {
       this.scrollViewMeasure = scrollViewMeasure;
+      this.wrapperContainerMeasure = wrapperContainerMeasure;
       const { steps } = this.state;
 
       const currentStep = fromStep
@@ -144,7 +151,20 @@ const copilot = ({
         : this.getFirstStep();
 
       await this.setCurrentStep(currentStep);
-      this.setVisibility(true);
+      await this.setVisibility(true);
+      this.modal.animateMove(
+        {
+          width: this.targetMeasure.width + OFFSET_WIDTH,
+          height: this.targetMeasure.height + OFFSET_WIDTH,
+          left: this.targetMeasure.x - OFFSET_WIDTH / 2,
+          top:
+            (!Number.isNaN(parseFloat(this.newTargetY))
+              ? newTargetY
+              : this.targetMeasure.y) -
+            OFFSET_WIDTH / 2
+        },
+        this.wrapperContainerMeasure
+      );
     };
 
     stop = (): void => {

@@ -37,7 +37,7 @@ type State = {
   tooltip: Object,
   arrow: Object,
   anim: Object,
-  notAnimated: boolean,
+  notAnimated: boolean
 };
 
 class CopilotModal extends Component<Props, State> {
@@ -80,12 +80,11 @@ class CopilotModal extends Component<Props, State> {
     });
   }
 
-  async animateMove(obj = {}): void {
+  async animateMove(obj = {}, layoutMeasure?: any): void {
     const duration = 300;
     let stepNumberLeft = obj.left - STEP_NUMBER_RADIUS;
 
-    const layout = await this.measure();
-
+    const layout = layoutMeasure ? layoutMeasure : await this.measure();
     if (stepNumberLeft < 0) {
       stepNumberLeft = obj.left + obj.width - STEP_NUMBER_RADIUS;
       if (stepNumberLeft > layout.width - STEP_NUMBER_DIAMETER) {
@@ -223,7 +222,9 @@ class CopilotModal extends Component<Props, State> {
             {this.props.currentStepNumber}
           </Text>
         </Animated.View>
-        <Animated.View style={[styles.arrow, this.state.arrow]} />
+        {!this.props.fullWidthToolTips && (
+          <Animated.View style={[styles.arrow, this.state.arrow]} />
+        )}
         <Animated.View
           style={[
             styles.tooltip,
